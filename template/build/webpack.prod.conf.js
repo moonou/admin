@@ -8,6 +8,7 @@ var CopyWebpackPlugin = require('copy-webpack-plugin')
 var HtmlWebpackPlugin = require('html-webpack-plugin')
 var ExtractTextPlugin = require('extract-text-webpack-plugin')
 var OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin')
+var CSSSplitWebpackPlugin = require('css-split-webpack-plugin').default
 
 var env = {{#if_or unit e2e}}process.env.NODE_ENV === 'testing'
   ? require('../config/test.env')
@@ -41,6 +42,12 @@ var webpackConfig = merge(baseWebpackConfig, {
     new ExtractTextPlugin({
       filename: utils.assetsPath('css/[name].[contenthash].css')
     }),
+    // split css file
+    new CSSSplitWebpackPlugin({
+      size: 2000,
+      filename: utils.assetsPath('css/[name]-part[part].css'),
+      preserve: true
+    }),
     // Compress extracted CSS. We are using this plugin so that possible
     // duplicated CSS from different components can be deduped.
     new OptimizeCSSPlugin({
@@ -65,7 +72,12 @@ var webpackConfig = merge(baseWebpackConfig, {
         // https://github.com/kangax/html-minifier#options-quick-reference
       },
       // necessary to consistently work with multiple chunks via CommonsChunkPlugin
-      chunksSortMode: 'dependency'
+      chunksSortMode: (chunk1, chunk2) => {
+        let orders = ['manifest', 'vendor', 'element-ui', 'app']
+        let order1 = orders.indexOf(chunk1.names[0])
+        let order2 = orders.indexOf(chunk2.names[0])
+        return order1 > order2 ? 1 : order1 < order2 ? -1 : 0
+      }
     }),
     // split vendor js into its own file
     new webpack.optimize.CommonsChunkPlugin({
@@ -81,11 +93,25 @@ var webpackConfig = merge(baseWebpackConfig, {
         )
       }
     }),
+    // split element-ui
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'element-ui',
+      minChunks: function (module, count) {
+        // any required modules inside node_modules are extracted to vendor
+        return (
+          module.resource &&
+          /\.js$/.test(module.resource) &&
+          module.resource.indexOf(
+            path.join(__dirname, '../node_modules/element-ui')
+          ) === 0
+        )
+      }
+    }),
     // extract webpack runtime and module manifest to its own file in order to
     // prevent vendor hash from being updated whenever app bundle is updated
     new webpack.optimize.CommonsChunkPlugin({
       name: 'manifest',
-      chunks: ['vendor']
+      chunks: ['element-ui', 'vendor']
     }),
     // copy custom static assets
     new CopyWebpackPlugin([

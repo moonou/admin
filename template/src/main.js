@@ -4,18 +4,20 @@
 {{/if_eq}}
 import Vue from 'vue'{{#if_eq lintConfig "airbnb"}};{{/if_eq}}
 import App from './App'{{#if_eq lintConfig "airbnb"}};{{/if_eq}}
-{{#router}}
 import router from './router'{{#if_eq lintConfig "airbnb"}};{{/if_eq}}
-{{/router}}
+import ElementUI from 'element-ui'{{#if_eq lintConfig "airbnb"}};{{/if_eq}}
+import 'element-ui/lib/theme-default/index.css'{{#if_eq lintConfig "airbnb"}};{{/if_eq}} // element-ui style
+import 'normalize.css'{{#if_eq lintConfig "airbnb"}};{{/if_eq}}
+import '@/assets/styles/app.css'{{#if_eq lintConfig "airbnb"}};{{/if_eq}}
 
 Vue.config.productionTip = false{{#if_eq lintConfig "airbnb"}};{{/if_eq}}
+
+Vue.use(ElementUI){{#if_eq lintConfig "airbnb"}};{{/if_eq}}
 
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
-  {{#router}}
   router,
-  {{/router}}
   {{#if_eq build "runtime"}}
   render: h => h(App){{#if_eq lintConfig "airbnb"}},{{/if_eq}}
   {{/if_eq}}
